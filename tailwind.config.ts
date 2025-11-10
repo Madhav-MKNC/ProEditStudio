@@ -47,16 +47,20 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        sidebar: {
-          DEFAULT: "hsl(var(--sidebar-background))",
-          foreground: "hsl(var(--sidebar-foreground))",
-          primary: "hsl(var(--sidebar-primary))",
-          "primary-foreground": "hsl(var(--sidebar-primary-foreground))",
-          accent: "hsl(var(--sidebar-accent))",
-          "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
-          border: "hsl(var(--sidebar-border))",
-          ring: "hsl(var(--sidebar-ring))",
+        editor: {
+          bg: "hsl(var(--editor-bg))",
+          panel: "hsl(var(--editor-panel))",
+          "panel-glass": "hsl(var(--editor-panel-glass))",
         },
+      },
+      backgroundImage: {
+        "gradient-primary": "var(--gradient-primary)",
+        "gradient-accent": "var(--gradient-accent)",
+        "gradient-subtle": "var(--gradient-subtle)",
+      },
+      boxShadow: {
+        glow: "var(--shadow-glow)",
+        panel: "var(--shadow-panel)",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -80,10 +84,39 @@ export default {
             height: "0",
           },
         },
+        "fade-in": {
+          from: {
+            opacity: "0",
+          },
+          to: {
+            opacity: "1",
+          },
+        },
+        "slide-up": {
+          from: {
+            transform: "translateY(10px)",
+            opacity: "0",
+          },
+          to: {
+            transform: "translateY(0)",
+            opacity: "1",
+          },
+        },
+        "glow": {
+          "0%, 100%": {
+            opacity: "0.5",
+          },
+          "50%": {
+            opacity: "1",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "fade-in": "fade-in 0.3s ease-out",
+        "slide-up": "slide-up 0.3s ease-out",
+        "glow": "glow 2s ease-in-out infinite",
       },
     },
   },
