@@ -1,58 +1,130 @@
-import { Type, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { Download, Save, FolderOpen, Settings, FileImage, FileType, Palette } from "lucide-react";
 import { TextLayer } from "@/types/editor";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { HistoryControls } from "./HistoryControls";
 
 interface HeaderProps {
   layers: TextLayer[];
   backgroundImage: string | null;
+  onUndo: () => void;
+  onRedo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
 }
 
-export const Header = ({ layers, backgroundImage }: HeaderProps) => {
-  const handleExport = async () => {
-    try {
-      const canvas = document.querySelector('canvas');
-      if (!canvas) {
-        toast.error("Canvas not found");
-        return;
-      }
-
-      canvas.toBlob((blob) => {
-        if (blob) {
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `text-design-${Date.now()}.png`;
-          a.click();
-          URL.revokeObjectURL(url);
-          toast.success("Image exported successfully!");
-        }
-      }, 'image/png');
-    } catch (error) {
-      toast.error("Failed to export image");
-    }
+export const Header = ({ layers, backgroundImage, onUndo, onRedo, canUndo, canRedo }: HeaderProps) => {
+  const handleExport = (format: 'png' | 'jpg' | 'svg') => {
+    const canvas = document.querySelector('canvas');
+    if (!canvas) return;
+    
+    const link = document.createElement('a');
+    link.download = `design.${format}`;
+    link.href = canvas.toDataURL(format === 'jpg' ? 'image/jpeg' : 'image/png');
+    link.click();
   };
 
   return (
-    <header className="h-16 bg-editor-panel border-b border-border flex items-center justify-between px-6">
-      <div className="flex items-center gap-3">
+    <header className="h-14 bg-editor-panel border-b border-border flex items-center justify-between px-4">
+      <div className="flex items-center gap-6">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
-            <Type className="w-5 h-5 text-primary-foreground" />
+            <Palette className="w-4 h-4 text-white" />
           </div>
           <h1 className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-            TextCraft Studio
+            ProEdit Studio
           </h1>
         </div>
-      </div>
 
-      <Button 
-        onClick={handleExport}
-        className="bg-gradient-primary hover:opacity-90 transition-opacity"
-      >
-        <Download className="w-4 h-4 mr-2" />
-        Export PNG
-      </Button>
+        <div className="flex items-center gap-1">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm">File</Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem>
+                <FolderOpen className="w-4 h-4 mr-2" />
+                New Project
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <FolderOpen className="w-4 h-4 mr-2" />
+                Open
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Save className="w-4 h-4 mr-2" />
+                Save
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => handleExport('png')}>
+                Export as PNG
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport('jpg')}>
+                Export as JPG
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport('svg')}>
+                Export as SVG
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm">Edit</Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={onUndo} disabled={!canUndo}>
+                Undo
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onRedo} disabled={!canRedo}>
+                Redo
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm">Image</Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem>
+                <FileImage className="w-4 h-4 mr-2" />
+                Image Size
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <FileImage className="w-4 h-4 mr-2" />
+                Canvas Size
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <Button variant="ghost" size="sm">Layer</Button>
+          <Button variant="ghost" size="sm">Type</Button>
+          <Button variant="ghost" size="sm">Filter</Button>
+          <Button variant="ghost" size="sm">View</Button>
+        </div>
+      </div>
+      
+      <div className="flex items-center gap-3">
+        <HistoryControls
+          onUndo={onUndo}
+          onRedo={onRedo}
+          canUndo={canUndo}
+          canRedo={canRedo}
+        />
+        
+        <Button
+          onClick={() => handleExport('png')}
+          className="bg-gradient-primary hover:opacity-90"
+          size="sm"
+        >
+          <Download className="w-4 h-4 mr-2" />
+          Export
+        </Button>
+        
+        <Button variant="ghost" size="icon" className="h-8 w-8">
+          <Settings className="w-4 h-4" />
+        </Button>
+      </div>
     </header>
   );
 };

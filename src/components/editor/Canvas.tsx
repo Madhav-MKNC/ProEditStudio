@@ -71,6 +71,17 @@ export const Canvas = ({
           x: obj.left || 0,
           y: obj.top || 0,
           rotation: obj.angle || 0,
+          text: obj.text || "",
+        });
+      }
+    });
+
+    // Handle text editing
+    canvas.on("text:changed", (e) => {
+      const obj = e.target as ExtendedIText;
+      if (obj && obj.layerId) {
+        onUpdateLayer(obj.layerId, {
+          text: obj.text || "",
         });
       }
     });
