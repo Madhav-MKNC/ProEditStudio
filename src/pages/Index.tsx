@@ -14,6 +14,7 @@ const Index = () => {
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
   const [activeTool, setActiveTool] = useState('select');
+  const [backgroundFit, setBackgroundFit] = useState<'contain' | 'cover' | 'stretch'>('contain');
 
   const selectedLayer = layers.find(layer => layer.id === selectedLayerId) || null;
 
@@ -49,6 +50,36 @@ const Index = () => {
     }
   };
 
+  const toggleLock = (id: string) => {
+    const layer = layers.find(l => l.id === id);
+    if (!layer) return;
+    updateLayer(id, { locked: !layer.locked });
+  };
+
+  const toggleHide = (id: string) => {
+    const layer = layers.find(l => l.id === id);
+    if (!layer) return;
+    updateLayer(id, { hidden: !layer.hidden });
+  };
+
+  const renameLayer = (id: string, name: string) => {
+    updateLayer(id, { name });
+  };
+
+  const handleNewProject = () => {
+    setLayers([]);
+    setSelectedLayerId(null);
+    setBackgroundImage(null);
+    setBackgroundFit('contain');
+  };
+
+  const handleOpenProject = (project: { layers: TextLayer[]; backgroundImage: string | null; backgroundFit?: 'contain' | 'cover' | 'stretch' }) => {
+    setLayers(project.layers || []);
+    setSelectedLayerId(null);
+    setBackgroundImage(project.backgroundImage || null);
+    setBackgroundFit(project.backgroundFit || 'contain');
+  };
+
   const handleZoomIn = () => setZoom(Math.min(zoom + 0.1, 3));
   const handleZoomOut = () => setZoom(Math.max(zoom - 0.1, 0.1));
   const handleZoomReset = () => setZoom(1);
@@ -58,6 +89,9 @@ const Index = () => {
       <Header 
         layers={layers}
         backgroundImage={backgroundImage}
+        backgroundFit={backgroundFit}
+        onNewProject={handleNewProject}
+        onOpenProject={handleOpenProject}
         onUndo={undo}
         onRedo={redo}
         canUndo={canUndo}

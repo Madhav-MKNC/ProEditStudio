@@ -3,10 +3,14 @@ import { Download, Save, FolderOpen, Settings, FileImage, FileType, Palette } fr
 import { TextLayer } from "@/types/editor";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { HistoryControls } from "./HistoryControls";
+import { useRef } from "react";
 
 interface HeaderProps {
   layers: TextLayer[];
   backgroundImage: string | null;
+  backgroundFit?: 'contain' | 'cover' | 'stretch';
+  onNewProject?: () => void;
+  onOpenProject?: (project: { layers: TextLayer[]; backgroundImage: string | null; backgroundFit?: 'contain' | 'cover' | 'stretch' }) => void;
   onUndo: () => void;
   onRedo: () => void;
   canUndo: boolean;
