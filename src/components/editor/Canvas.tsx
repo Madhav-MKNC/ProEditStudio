@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Canvas as FabricCanvas, IText, Image as FabricImage, FabricObject } from "fabric";
+import { Canvas as FabricCanvas, IText, Image as FabricImage, FabricObject, Gradient } from "fabric";
 import { TextLayer } from "@/types/editor";
 import { Button } from "@/components/ui/button";
 import { Upload } from "lucide-react";
@@ -31,6 +31,37 @@ export const Canvas = ({
   const fabricCanvasRef = useRef<FabricCanvas | null>(null);
   const textObjectsRef = useRef<Map<string, ExtendedIText>>(new Map());
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Helpers
+  const makeGradientFill = (obj: IText, layer: TextLayer) => {
+    if (!layer.gradient.enabled) return layer.color;
+    try {
+      const w = (obj.width || 200);
+      const h = (obj.height || 60);
+      const type = layer.gradient.type;
+      if (type === "radial") {
+        return new Gradient({
+          type: "radial",
+          coords: { x1: w / 2, y1: h / 2, r1: 0, x2: w / 2, y2: h / 2, r2: Math.max(w, h) / 2 },
+          colorStops: [
+            { offset: 0, color: layer.gradient.colors[0] },
+            { offset: 1, color: layer.gradient.colors[1] || layer.gradient.colors[0] },
+          ],
+        });
+      }
+      // linear (approximate along X)
+      return new Gradient({
+        type: "linear",
+        coords: { x1: 0, y1: 0, x2: w, y2: 0 },
+        colorStops: [
+          { offset: 0, color: layer.gradient.colors[0] },
+          { offset: 1, color: layer.gradient.colors[1] || layer.gradient.colors[0] },
+        ],
+      });
+    } catch {
+      return layer.color;
+    }
+  };
 
   // Initialize canvas
   useEffect(() => {
@@ -67,11 +98,21 @@ export const Canvas = ({
     canvas.on("object:modified", (e) => {
       const obj = e.target as ExtendedIText;
       if (obj && obj.layerId) {
+        // Normalize scaling into fontSize to keep state in sync
+        const scaleX = obj.scaleX ?? 1;
+        const scaleY = obj.scaleY ?? 1;
+        let newFontSize = obj.fontSize || 0;
+        if (scaleX !== 1 || scaleY !== 1) {
+          const factor = (scaleX + scaleY) / 2; // average to keep proportion for IText
+          newFontSize = Math.max(1, Math.round((obj.fontSize || 0) * factor));
+          obj.set({ scaleX: 1, scaleY: 1, fontSize: newFontSize });
+        }
         onUpdateLayer(obj.layerId, {
           x: obj.left || 0,
           y: obj.top || 0,
           rotation: obj.angle || 0,
           text: obj.text || "",
+          fontSize: newFontSize || undefined,
         });
       }
     });
@@ -98,12 +139,14 @@ export const Canvas = ({
 
     if (backgroundImage) {
       FabricImage.fromURL(backgroundImage).then((img) => {
-        const canvasWidth = canvas.width || 1200;
-        const canvasHeight = canvas.height || 800;
-        
-        img.scaleToWidth(canvasWidth);
-        img.scaleToHeight(canvasHeight);
-        
+        const canvasWidth = (canvas.width || 1200);
+        const canvasHeight = (canvas.height || 800);
+        const imgW = img.width || canvasWidth;
+        const imgH = img.height || canvasHeight;
+        const scale = Math.min(canvasWidth / imgW, canvasHeight / imgH); // contain
+        img.scale(scale);
+        img.left = (canvasWidth - (imgW * scale)) / 2;
+        img.top = (canvasHeight - (imgH * scale)) / 2;
         canvas.backgroundImage = img;
         canvas.renderAll();
       });
@@ -139,9 +182,7 @@ export const Canvas = ({
           fontSize: layer.fontSize,
           fontFamily: layer.fontFamily,
           fontWeight: layer.fontWeight,
-          fill: layer.gradient.enabled 
-            ? `linear-gradient(${layer.gradient.angle}deg, ${layer.gradient.colors.join(', ')})`
-            : layer.color,
+          fill: layer.color, // temporary, will set gradient below if enabled
           opacity: layer.opacity,
           angle: layer.rotation,
           textAlign: layer.textAlign,
@@ -150,6 +191,17 @@ export const Canvas = ({
         }) as ExtendedIText;
 
         textObj.layerId = layer.id;
+        // Apply gradient, visibility, locking, and blend mode
+        const fill = makeGradientFill(textObj, layer);
+        textObj.set({ fill });
+        textObj.visible = !(layer.hidden ?? false);
+        textObj.selectable = !(layer.locked ?? false);
+        textObj.evented = !(layer.locked ?? false);
+        textObj.lockMovementX = !!layer.locked;
+        textObj.lockMovementY = !!layer.locked;
+        textObj.hasControls = !(layer.locked ?? false);
+        (textObj as any).globalCompositeOperation = layer.blendMode || "source-over";
+
         canvas.add(textObj);
         textObjectsRef.current.set(layer.id, textObj);
       } else {
@@ -161,15 +213,23 @@ export const Canvas = ({
           fontSize: layer.fontSize,
           fontFamily: layer.fontFamily,
           fontWeight: layer.fontWeight,
-          fill: layer.gradient.enabled
-            ? `linear-gradient(${layer.gradient.angle}deg, ${layer.gradient.colors.join(', ')})`
-            : layer.color,
           opacity: layer.opacity,
           angle: layer.rotation,
           textAlign: layer.textAlign,
           charSpacing: layer.letterSpacing * 10,
           lineHeight: layer.lineHeight,
         });
+        // Update dynamic props that need object context
+        const fill = makeGradientFill(textObj, layer);
+        textObj.set({ fill });
+        textObj.visible = !(layer.hidden ?? false);
+        textObj.selectable = !(layer.locked ?? false);
+        textObj.evented = !(layer.locked ?? false);
+        textObj.lockMovementX = !!layer.locked;
+        textObj.lockMovementY = !!layer.locked;
+        textObj.hasControls = !(layer.locked ?? false);
+        (textObj as any).globalCompositeOperation = layer.blendMode || "source-over";
+
 
         // Apply shadow
         if (layer.shadow.enabled) {

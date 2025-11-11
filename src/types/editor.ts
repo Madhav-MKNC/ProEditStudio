@@ -1,5 +1,6 @@
 export interface TextLayer {
   id: string;
+  name?: string;
   text: string;
   x: number;
   y: number;
@@ -12,6 +13,9 @@ export interface TextLayer {
   textAlign: "left" | "center" | "right";
   letterSpacing: number;
   lineHeight: number;
+  locked?: boolean;
+  hidden?: boolean;
+  blendMode?: GlobalCompositeOperation;
   shadow: {
     enabled: boolean;
     color: string;
@@ -32,8 +36,10 @@ export interface TextLayer {
   };
 }
 
+
 export const createDefaultLayer = (id: string): TextLayer => ({
   id,
+  name: "Text Layer",
   text: "Double click to edit",
   x: 400,
   y: 300,
@@ -46,6 +52,9 @@ export const createDefaultLayer = (id: string): TextLayer => ({
   textAlign: "center",
   letterSpacing: 0,
   lineHeight: 1.2,
+  locked: false,
+  hidden: false,
+  blendMode: "source-over",
   shadow: {
     enabled: false,
     color: "#000000",
