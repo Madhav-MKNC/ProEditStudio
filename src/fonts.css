@@ -1,0 +1,41 @@
+/* src/styles/fonts.css */
+
+@font-face {
+  font-family: 'Inter'; /* The name you'll use in your components */
+  src: url('/assets/fonts/Inter-Regular.woff2') format('woff2'),
+       url('/assets/fonts/Inter-Regular.woff') format('woff'); /* Add .woff if you have it for broader support */
+  font-weight: 400; /* Specify the weight this file represents */
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Inter'; /* If you have different weights for the same family */
+  src: url('/assets/fonts/Inter-Bold.woff2') format('woff2'),
+       url('/assets/fonts/Inter-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Playfair Display';
+  src: url('/assets/fonts/PlayfairDisplay-Regular.woff2') format('woff2'),
+       url('/assets/fonts/PlayfairDisplay-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Playfair Display';
+  src: url('/assets/fonts/PlayfairDisplay-Bold.woff2') format('woff2'),
+       url('/assets/fonts/PlayfairDisplay-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Add a separate @font-face rule for EACH unique font file you placed */
+/* Ensure the src path is correct relative to fonts.css */
+/* e.g., url('/assets/fonts/YourFontName-Weight.woff2') */
