@@ -7,6 +7,7 @@ import { Header } from "@/components/editor/Header";
 import { ZoomControls } from "@/components/editor/ZoomControls";
 import { TextLayer } from "@/types/editor";
 import { useHistory } from "@/hooks/useHistory";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 
 const Index = () => {
   const { state: layers, set: setLayers, undo, redo, canUndo, canRedo } = useHistory<TextLayer[]>([]);
@@ -105,47 +106,58 @@ const Index = () => {
           onToolChange={setActiveTool}
         />
 
-        <div className="flex-1 flex flex-col">
-          <div className="flex-1 flex items-center justify-center p-6 relative">
-            <Canvas
-              layers={layers}
-              selectedLayerId={selectedLayerId}
-              backgroundImage={backgroundImage}
-              onSelectLayer={setSelectedLayerId}
-              onUpdateLayer={updateLayer}
-              onBackgroundImageChange={setBackgroundImage}
-              zoom={zoom} // Pass zoom to Canvas
-              backgroundFit={backgroundFit} // Pass backgroundFit to Canvas
-            />
-          </div>
+        <ResizablePanelGroup direction="horizontal" className="flex-1">
+          <ResizablePanel defaultSize={75} minSize={50}>
+            <div className="flex-1 flex flex-col h-full">
+              <div className="flex-1 flex items-center justify-center p-6 relative">
+                <Canvas
+                  layers={layers}
+                  selectedLayerId={selectedLayerId}
+                  backgroundImage={backgroundImage}
+                  onSelectLayer={setSelectedLayerId}
+                  onUpdateLayer={updateLayer}
+                  onBackgroundImageChange={setBackgroundImage}
+                  zoom={zoom}
+                  backgroundFit={backgroundFit}
+                />
+              </div>
 
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10">
-            <ZoomControls
-              zoom={zoom}
-              onZoomIn={handleZoomIn}
-              onZoomOut={handleZoomOut}
-              onZoomReset={handleZoomReset}
-            />
-          </div>
-        </div>
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10">
+                <ZoomControls
+                  zoom={zoom}
+                  onZoomIn={handleZoomIn}
+                  onZoomOut={handleZoomOut}
+                  onZoomReset={handleZoomReset}
+                />
+              </div>
+            </div>
+          </ResizablePanel>
 
-        <div className="w-30% flex flex-col gap-3 p-3 bg-editor-panel border-l border-border overflow-y-auto">
-          <PropertiesPanel
-            selectedLayer={selectedLayer}
-            onUpdateLayer={updateLayer}
-          />
+          <ResizableHandle withHandle className="bg-border w-2 flex items-center justify-center">
+            {/* Optional handle visual */}
+            <div className="w-1 h-8 bg-gray-400 rounded-full" />
+          </ResizableHandle>
 
-          <LayersPanel
-            layers={layers}
-            selectedLayerId={selectedLayerId}
-            onSelectLayer={setSelectedLayerId}
-            onDeleteLayer={deleteLayer}
-            onDuplicateLayer={duplicateLayer}
-            onToggleLock={toggleLock} // Pass toggleLock
-            onToggleHide={toggleHide} // Pass toggleHide
-            onRenameLayer={renameLayer}
-          />
-        </div>
+          <ResizablePanel defaultSize={25} minSize={20} maxSize={40}>
+            <div className="w-full h-full flex flex-col gap-3 p-3 bg-editor-panel border-l border-border overflow-y-auto">
+              <LayersPanel
+                layers={layers}
+                selectedLayerId={selectedLayerId}
+                onSelectLayer={setSelectedLayerId}
+                onDeleteLayer={deleteLayer}
+                onDuplicateLayer={duplicateLayer}
+                onToggleLock={toggleLock}
+                onToggleHide={toggleHide}
+                onRenameLayer={renameLayer}
+              />
+
+              <PropertiesPanel
+                selectedLayer={selectedLayer}
+                onUpdateLayer={updateLayer}
+              />
+            </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
       </div>
     </div>
   );

@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { TextLayer } from "@/types/editor";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input"; // Assuming you have an Input component
 import { Trash2, Copy, Type, Eye, EyeOff, Lock, Unlock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -10,9 +12,9 @@ interface LayersPanelProps {
   onSelectLayer: (id: string) => void;
   onDeleteLayer: (id: string) => void;
   onDuplicateLayer: (id: string) => void;
-  onToggleLock: (id: string) => void; // Added
-  onToggleHide: (id: string) => void; // Added
-  onRenameLayer: (id: string, name: string) => void; // Added
+  onToggleLock: (id: string) => void;
+  onToggleHide: (id: string) => void;
+  onRenameLayer: (id: string, name: string) => void;
 }
 
 export const LayersPanel = ({
@@ -25,13 +27,47 @@ export const LayersPanel = ({
   onToggleHide,
   onRenameLayer,
 }: LayersPanelProps) => {
+  const [editingLayerId, setEditingLayerId] = useState<string | null>(null);
+  const [editingLayerName, setEditingLayerName] = useState<string>('');
+
+  const handleStartRename = (layer: TextLayer) => {
+    setEditingLayerId(layer.id);
+    setEditingLayerName(layer.name || layer.text);
+  };
+
+  const handleRenameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditingLayerName(e.target.value);
+  };
+
+  const handleRenameSubmit = (id: string) => {
+    if (editingLayerName.trim() !== '') {
+      onRenameLayer(id, editingLayerName.trim());
+    }
+    setEditingLayerId(null);
+    setEditingLayerName('');
+  };
+
+  const handleRenameBlur = (id: string) => {
+    handleRenameSubmit(id);
+  };
+
+  const handleRenameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, id: string) => {
+    if (e.key === 'Enter') {
+      handleRenameSubmit(id);
+    }
+    if (e.key === 'Escape') {
+      setEditingLayerId(null);
+      setEditingLayerName('');
+    }
+  };
+
   return (
     <div className="rounded-lg bg-editor-panel-glass backdrop-blur-sm border border-border p-3">
       <div className="flex items-center gap-2 mb-3">
         <Type className="w-4 h-4 text-primary" />
         <h3 className="font-semibold text-sm">Layers</h3>
       </div>
-      
+
       <ScrollArea className="h-[250px]">
         <div className="space-y-1">
           {layers.length === 0 ? (
@@ -43,6 +79,7 @@ export const LayersPanel = ({
               <div
                 key={layer.id}
                 onClick={() => onSelectLayer(layer.id)}
+                onDoubleClick={() => handleStartRename(layer)}
                 className={cn(
                   "p-2 rounded border cursor-pointer transition-all group",
                   "hover:bg-muted/50",
@@ -52,12 +89,26 @@ export const LayersPanel = ({
                 )}
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <Type className="w-3 h-3 text-primary flex-shrink-0" />
-                    <span className="text-xs truncate">{layer.text}</span>
-                  </div>
-                  
-                  <div className="flex items-center gap-0.5 flex-shrink-0 transition-opacity">
+                  {editingLayerId === layer.id ? (
+                    <Input
+                      value={editingLayerName}
+                      onChange={handleRenameChange}
+                      onBlur={() => handleRenameBlur(layer.id)}
+                      onKeyDown={(e) => handleRenameKeyDown(e, layer.id)}
+                      autoFocus
+                      className="h-7 text-xs flex-1 mr-2"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  ) : (
+                    <div className="flex items-center gap-2 flex-1 min-w-0 pr-2">
+                      <Type className="w-3 h-3 text-primary flex-shrink-0" />
+                      <span className="text-xs truncate" title={layer.name || layer.text}>
+                        {layer.name || layer.text}
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-0.5 flex-shrink-0">
                     <Button
                       variant="ghost"
                       size="icon"
