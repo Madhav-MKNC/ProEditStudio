@@ -1,7 +1,7 @@
 import { TextLayer } from "@/types/editor";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Trash2, Copy, Type } from "lucide-react";
+import { Trash2, Copy, Type, Eye, EyeOff, Lock, Unlock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LayersPanelProps {
@@ -10,6 +10,9 @@ interface LayersPanelProps {
   onSelectLayer: (id: string) => void;
   onDeleteLayer: (id: string) => void;
   onDuplicateLayer: (id: string) => void;
+  onToggleLock: (id: string) => void; // Added
+  onToggleHide: (id: string) => void; // Added
+  onRenameLayer: (id: string, name: string) => void; // Added
 }
 
 export const LayersPanel = ({
@@ -18,6 +21,9 @@ export const LayersPanel = ({
   onSelectLayer,
   onDeleteLayer,
   onDuplicateLayer,
+  onToggleLock,
+  onToggleHide,
+  onRenameLayer,
 }: LayersPanelProps) => {
   return (
     <div className="rounded-lg bg-editor-panel-glass backdrop-blur-sm border border-border p-3">
@@ -51,11 +57,33 @@ export const LayersPanel = ({
                     <span className="text-xs truncate">{layer.text}</span>
                   </div>
                   
-                  <div className="flex items-center gap-0.5 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center gap-0.5 flex-shrink-0 transition-opacity">
                     <Button
                       variant="ghost"
                       size="icon"
                       className="h-6 w-6"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleHide(layer.id);
+                      }}
+                    >
+                      {layer.hidden ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleLock(layer.id);
+                      }}
+                    >
+                      {layer.locked ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
                       onClick={(e) => {
                         e.stopPropagation();
                         onDuplicateLayer(layer.id);
@@ -66,7 +94,7 @@ export const LayersPanel = ({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-6 w-6 hover:bg-destructive/20 hover:text-destructive"
+                      className="h-6 w-6 hover:bg-destructive/20 hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
                       onClick={(e) => {
                         e.stopPropagation();
                         onDeleteLayer(layer.id);

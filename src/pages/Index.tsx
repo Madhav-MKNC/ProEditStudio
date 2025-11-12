@@ -19,7 +19,7 @@ const Index = () => {
   const selectedLayer = layers.find(layer => layer.id === selectedLayerId) || null;
 
   const updateLayer = (id: string, updates: Partial<TextLayer>) => {
-    const newLayers = layers.map(layer => 
+    const newLayers = layers.map(layer =>
       layer.id === id ? { ...layer, ...updates } : layer
     );
     setLayers(newLayers);
@@ -86,7 +86,7 @@ const Index = () => {
 
   return (
     <div className="h-screen w-full bg-editor-bg flex flex-col overflow-hidden">
-      <Header 
+      <Header
         layers={layers}
         backgroundImage={backgroundImage}
         backgroundFit={backgroundFit}
@@ -97,14 +97,14 @@ const Index = () => {
         canUndo={canUndo}
         canRedo={canRedo}
       />
-      
+
       <div className="flex-1 flex overflow-hidden relative">
-        <Toolbar 
+        <Toolbar
           onAddText={addLayer}
           activeTool={activeTool}
           onToolChange={setActiveTool}
         />
-        
+
         <div className="flex-1 flex flex-col">
           <div className="flex-1 flex items-center justify-center p-6 relative">
             <Canvas
@@ -114,6 +114,8 @@ const Index = () => {
               onSelectLayer={setSelectedLayerId}
               onUpdateLayer={updateLayer}
               onBackgroundImageChange={setBackgroundImage}
+              zoom={zoom} // Pass zoom to Canvas
+              backgroundFit={backgroundFit} // Pass backgroundFit to Canvas
             />
           </div>
 
@@ -127,18 +129,21 @@ const Index = () => {
           </div>
         </div>
 
-        <div className="w-72 flex flex-col gap-3 p-3 bg-editor-panel border-l border-border overflow-y-auto">
+        <div className="w-30% flex flex-col gap-3 p-3 bg-editor-panel border-l border-border overflow-y-auto">
           <PropertiesPanel
             selectedLayer={selectedLayer}
             onUpdateLayer={updateLayer}
           />
-          
+
           <LayersPanel
             layers={layers}
             selectedLayerId={selectedLayerId}
             onSelectLayer={setSelectedLayerId}
             onDeleteLayer={deleteLayer}
             onDuplicateLayer={duplicateLayer}
+            onToggleLock={toggleLock} // Pass toggleLock
+            onToggleHide={toggleHide} // Pass toggleHide
+            onRenameLayer={renameLayer}
           />
         </div>
       </div>

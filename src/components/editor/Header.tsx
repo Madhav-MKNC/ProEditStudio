@@ -33,7 +33,7 @@ export const Header = ({ layers, backgroundImage, onUndo, onRedo, canUndo, canRe
       <div className="flex items-center gap-6">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
-            <Palette className="w-4 h-4 text-white" />
+            <img src="/favicon.ico" alt="ProEdit Studio" className="w-6 h-6" />
           </div>
           <h1 className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
             ProEdit Studio

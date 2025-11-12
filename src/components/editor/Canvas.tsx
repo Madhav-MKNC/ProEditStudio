@@ -17,6 +17,8 @@ interface CanvasProps {
   onSelectLayer: (id: string | null) => void;
   onUpdateLayer: (id: string, updates: Partial<TextLayer>) => void;
   onBackgroundImageChange: (url: string | null) => void;
+  zoom: number; // Added
+  backgroundFit: 'contain' | 'cover' | 'stretch'; // Added
 }
 
 export const Canvas = ({
@@ -26,6 +28,8 @@ export const Canvas = ({
   onSelectLayer,
   onUpdateLayer,
   onBackgroundImageChange,
+  zoom, // Added
+  backgroundFit, // Added
 }: CanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fabricCanvasRef = useRef<FabricCanvas | null>(null);
@@ -143,7 +147,25 @@ export const Canvas = ({
         const canvasHeight = (canvas.height || 800);
         const imgW = img.width || canvasWidth;
         const imgH = img.height || canvasHeight;
-        const scale = Math.min(canvasWidth / imgW, canvasHeight / imgH); // contain
+
+        let scaleX = canvasWidth / imgW;
+        let scaleY = canvasHeight / imgH;
+        let scale = 1;
+
+        if (backgroundFit === 'contain') {
+          scale = Math.min(scaleX, scaleY);
+        } else if (backgroundFit === 'cover') {
+          scale = Math.max(scaleX, scaleY);
+        } else if (backgroundFit === 'stretch') {
+          img.scaleX = scaleX;
+          img.scaleY = scaleY;
+          img.left = 0;
+          img.top = 0;
+          canvas.backgroundImage = img;
+          canvas.renderAll();
+          return;
+        }
+
         img.scale(scale);
         img.left = (canvasWidth - (imgW * scale)) / 2;
         img.top = (canvasHeight - (imgH * scale)) / 2;
@@ -154,7 +176,7 @@ export const Canvas = ({
       canvas.backgroundColor = "#1a1a24";
       canvas.renderAll();
     }
-  }, [backgroundImage]);
+  }, [backgroundImage, backgroundFit]);
 
   // Sync layers with fabric objects
   useEffect(() => {
@@ -191,72 +213,65 @@ export const Canvas = ({
         }) as ExtendedIText;
 
         textObj.layerId = layer.id;
-        // Apply gradient, visibility, locking, and blend mode
-        const fill = makeGradientFill(textObj, layer);
-        textObj.set({ fill });
-        textObj.visible = !(layer.hidden ?? false);
-        textObj.selectable = !(layer.locked ?? false);
-        textObj.evented = !(layer.locked ?? false);
-        textObj.lockMovementX = !!layer.locked;
-        textObj.lockMovementY = !!layer.locked;
-        textObj.hasControls = !(layer.locked ?? false);
-        (textObj as any).globalCompositeOperation = layer.blendMode || "source-over";
-
         canvas.add(textObj);
         textObjectsRef.current.set(layer.id, textObj);
-      } else {
-        // Update existing text object
+      }
+
+      // Update existing text object or newly created one
+      textObj.set({
+        text: layer.text,
+        left: layer.x,
+        top: layer.y,
+        fontSize: layer.fontSize,
+        fontFamily: layer.fontFamily,
+        fontWeight: layer.fontWeight,
+        opacity: layer.opacity,
+        angle: layer.rotation,
+        textAlign: layer.textAlign,
+        charSpacing: layer.letterSpacing * 10,
+        lineHeight: layer.lineHeight,
+      });
+
+      // Update dynamic props that need object context
+      const fill = makeGradientFill(textObj, layer);
+      textObj.set({ fill });
+
+      // Handle visibility and locking
+      textObj.visible = !(layer.hidden ?? false);
+      textObj.selectable = !(layer.locked ?? false);
+      textObj.evented = !(layer.locked ?? false);
+      textObj.lockMovementX = !!layer.locked;
+      textObj.lockMovementY = !!layer.locked;
+      textObj.hasControls = !(layer.locked ?? false);
+
+      (textObj as any).globalCompositeOperation = layer.blendMode || "source-over";
+
+
+      // Apply shadow
+      if (layer.shadow.enabled) {
         textObj.set({
-          text: layer.text,
-          left: layer.x,
-          top: layer.y,
-          fontSize: layer.fontSize,
-          fontFamily: layer.fontFamily,
-          fontWeight: layer.fontWeight,
-          opacity: layer.opacity,
-          angle: layer.rotation,
-          textAlign: layer.textAlign,
-          charSpacing: layer.letterSpacing * 10,
-          lineHeight: layer.lineHeight,
+          shadow: {
+            color: layer.shadow.color,
+            blur: layer.shadow.blur,
+            offsetX: layer.shadow.offsetX,
+            offsetY: layer.shadow.offsetY,
+          },
         });
-        // Update dynamic props that need object context
-        const fill = makeGradientFill(textObj, layer);
-        textObj.set({ fill });
-        textObj.visible = !(layer.hidden ?? false);
-        textObj.selectable = !(layer.locked ?? false);
-        textObj.evented = !(layer.locked ?? false);
-        textObj.lockMovementX = !!layer.locked;
-        textObj.lockMovementY = !!layer.locked;
-        textObj.hasControls = !(layer.locked ?? false);
-        (textObj as any).globalCompositeOperation = layer.blendMode || "source-over";
+      } else {
+        textObj.set({ shadow: null });
+      }
 
-
-        // Apply shadow
-        if (layer.shadow.enabled) {
-          textObj.set({
-            shadow: {
-              color: layer.shadow.color,
-              blur: layer.shadow.blur,
-              offsetX: layer.shadow.offsetX,
-              offsetY: layer.shadow.offsetY,
-            },
-          });
-        } else {
-          textObj.set({ shadow: null });
-        }
-
-        // Apply stroke
-        if (layer.stroke.enabled) {
-          textObj.set({
-            stroke: layer.stroke.color,
-            strokeWidth: layer.stroke.width,
-          });
-        } else {
-          textObj.set({
-            stroke: undefined,
-            strokeWidth: 0,
-          });
-        }
+      // Apply stroke
+      if (layer.stroke.enabled) {
+        textObj.set({
+          stroke: layer.stroke.color,
+          strokeWidth: layer.stroke.width,
+        });
+      } else {
+        textObj.set({
+          stroke: undefined,
+          strokeWidth: 0,
+        });
       }
 
       // Set selection
@@ -267,6 +282,15 @@ export const Canvas = ({
 
     canvas.renderAll();
   }, [layers, selectedLayerId]);
+
+  // Handle zoom
+  useEffect(() => {
+    const canvas = fabricCanvasRef.current;
+    if (!canvas) return;
+    canvas.setZoom(zoom);
+    canvas.renderAll();
+  }, [zoom]);
+
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -283,7 +307,13 @@ export const Canvas = ({
 
   return (
     <div className="relative">
-      <div className="relative rounded-lg overflow-hidden shadow-panel border border-border">
+      <div className="relative rounded-lg overflow-hidden shadow-panel border border-border"
+        style={{
+          width: 1200 * zoom,
+          height: 800 * zoom,
+          transformOrigin: 'top left',
+        }}
+      >
         <canvas ref={canvasRef} />
       </div>
 
