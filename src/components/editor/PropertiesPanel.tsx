@@ -16,23 +16,117 @@ interface PropertiesPanelProps {
 
 // --- IMPORTANT: DEFINE YOUR AVAILABLE FONTS HERE ---
 // This array should contain the 'font-family' names
-// that you've defined using @font-face rules in src/styles/fonts.css
-// or standard web-safe/system fonts you want to support.
+// that you've defined using @font-face rules in src/styles/fonts.css.
+// Ensure these names exactly match what you put in fonts.css
+// for self-hosted fonts to work.
 const availableFonts = [
-  "Inter",             // Must match 'font-family: "Inter";' in fonts.css
-  "Playfair Display",  // Must match 'font-family: "Playfair Display";' in fonts.css
-  "Roboto",            // Example: If you add Roboto to fonts.css
-  "Open Sans",         // Example: If you add Open Sans to fonts.css
-  "Montserrat",        // Example: If you add Montserrat to fonts.css
-  "Bebas Neue",
-  "Oswald",
-  "Poppins",
-  "Raleway",
-  "Lato",
-  "Merriweather",
-  // Add all other font-family names you define in src/styles/fonts.css
-  // or any standard system fonts you want to explicitly include.
+  "Arial",
+  "Verdana",
+  "Times New Roman",
+  "Courier New",
+  'Autoradiographic Italic',
+  'Autoradiographic',
+  'Axaxax',
+  'Bench Grinder Titling',
+  'Bitcrusher Condensed',
+  'Breamcatcher',
+  'Budmo Jiggler',
+  'Budmo Jigglish',
+  'Built Titling', // This family has multiple weights/styles
+  'Bullpen 3D',
+  'Bullpen', // This family has multiple weights/styles
+  'Carbon', // This family has multiple weights/styles
+  'Carbon Phyber',
+  'Cardigan Titling', // This family has multiple weights/styles
+  'Chickweed Titling',
+  'Chinese Rocks',
+  'Conthrax', // This family has multiple weights/styles
+  'Coolvetica', // This family has multiple weights/styles
+  'Dealerplate California',
+  'Densmore',
+  'Dirty Bakers Dozen',
+  'Dream Orphanage',
+  'Duality',
+  'Earwig Factory',
+  'Ethnocentric', // This family has multiple weights/styles
+  'Evensong Hollow',
+  'Expressway',
+  'Fenwick Outline',
+  'Fledgling',
+  'Forgotten Futurist', // This family has multiple weights/styles
+  'Galderglynn Titling', // This family has multiple weights/styles
+  'Geoparody', // This family has multiple weights/styles
+  'Gnuolane',
+  'Good Times',
+  'Good Timing',
+  'Gravtrac',
+  'Gunplay 3D',
+  'Gunplay',
+  'Gymkhana',
+  'Heavy Heap',
+  'Hemi Head',
+  'Jesaya',
+  'Joystix Monospace',
+  'Junegull',
+  'Kenyan Coffee', // This family has multiple weights/styles
+  'Kenyan Coffee Stencil',
+  'Kimberley',
+  'Kingsbridge', // This family has multiple weights/styles
+  'Kingsbridge Condensed', // This family has multiple weights/styles
+  'Kingsbridge Extended', // This family has multiple weights/styles
+  'Kingsbridge SmallCaps', // This family has multiple weights/styles
+  'Kirsty', // This family has multiple weights/styles
+  'Kleptocracy Titling', // This family has multiple weights/styles
+  'Kleptocracy Titling Condensed',
+  'Kleptocracy Titling Extended',
+  'Larabiefont',
+  'Libel Suit',
+  'Meloche',
+  'Mexcellent 3D',
+  'Mexcellent',
+  'Mixolydian Titling', // This family has multiple weights/styles
+  'Monofonto',
+  'Mufferaw',
+  'Nasalization',
+  'Negotiate',
+  'Neuropol X',
+  'Neuropolitical',
+  'Nulshock',
+  'Octin College',
+  'Octin Prison',
+  'Octin Sports',
+  'Octin Spraypaint A',
+  'Octin Stencil',
+  'Octin Vintage B',
+  'Pakenham',
+  'Palamecia Titling',
+  'Pirulen',
+  'Pricedown',
+  'ProtoMono', // Explicitly listed since it's a woff/woff2
+  'Pupcat',
+  'Quasix Titling',
+  'Rakesly', // This family has multiple weights/styles
+  'Recharge',
+  'Remissis',
+  'Rexlia',
+  'Rimouski',
+  'Shlop',
+  'Sofachrome', // This family has multiple weights/styles
+  'Steelfish', // This family has multiple weights/styles
+  'Steelfish Outline',
+  'Steelfish Rounded',
+  'Strenuous 3D',
+  'Strenuous', // This family has multiple weights/styles
+  'Sui Generis',
+  'Toxigenesis',
+  'Venus Rising',
+  'Vinque',
+  'Vipnagorgialla', // This family has multiple weights/styles
+  'Wheaton Capitals',
+  'Zekton',
+  'Zrnic',
 ];
+
 
 export const PropertiesPanel = ({ selectedLayer, onUpdateLayer }: PropertiesPanelProps) => {
   if (!selectedLayer) {
