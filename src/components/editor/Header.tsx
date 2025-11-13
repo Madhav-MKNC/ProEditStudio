@@ -17,7 +17,7 @@ interface HeaderProps {
   canRedo: boolean;
 }
 
-export const Header = ({ layers, backgroundImage, onUndo, onRedo, canUndo, canRedo }: HeaderProps) => {
+export const Header = ({ layers, backgroundImage, backgroundFit, onNewProject, onOpenProject, onUndo, onRedo, canUndo, canRedo }: HeaderProps) => {
   const handleExport = (format: 'png' | 'jpg' | 'svg') => {
     const canvas = document.querySelector('canvas');
     if (!canvas) return;
@@ -26,6 +26,33 @@ export const Header = ({ layers, backgroundImage, onUndo, onRedo, canUndo, canRe
     link.download = `design.${format}`;
     link.href = canvas.toDataURL(format === 'jpg' ? 'image/jpeg' : 'image/png');
     link.click();
+  };
+
+  const projectFileRef = useRef<HTMLInputElement>(null);
+
+  const handleSaveProject = () => {
+    const data = JSON.stringify({ layers, backgroundImage, backgroundFit }, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'project.json';
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleOpenFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const project = JSON.parse(reader.result as string);
+        onOpenProject?.(project);
+      } catch {}
+    };
+    reader.readAsText(file);
+    e.currentTarget.value = '';
   };
 
   return (
@@ -46,15 +73,15 @@ export const Header = ({ layers, backgroundImage, onUndo, onRedo, canUndo, canRe
               <Button variant="ghost" size="sm">File</Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onNewProject?.()}>
                 <FolderOpen className="w-4 h-4 mr-2" />
                 New Project
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => projectFileRef.current?.click()}>
                 <FolderOpen className="w-4 h-4 mr-2" />
                 Open
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={handleSaveProject}>
                 <Save className="w-4 h-4 mr-2" />
                 Save
               </DropdownMenuItem>
@@ -129,6 +156,7 @@ export const Header = ({ layers, backgroundImage, onUndo, onRedo, canUndo, canRe
           <Settings className="w-4 h-4" />
         </Button>
       </div>
+      <input ref={projectFileRef} type="file" accept="application/json" className="hidden" onChange={handleOpenFileChange} />
     </header>
   );
 };

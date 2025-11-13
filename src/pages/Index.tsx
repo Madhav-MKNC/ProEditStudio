@@ -119,6 +119,7 @@ const Index = () => {
                   onBackgroundImageChange={setBackgroundImage}
                   zoom={zoom}
                   backgroundFit={backgroundFit}
+                  activeTool={activeTool}
                 />
               </div>
 

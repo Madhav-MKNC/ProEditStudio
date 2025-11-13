@@ -19,6 +19,7 @@ interface CanvasProps {
   onBackgroundImageChange: (url: string | null) => void;
   zoom: number; // Added
   backgroundFit: 'contain' | 'cover' | 'stretch'; // Added
+  activeTool: string;
 }
 
 export const Canvas = ({
@@ -30,6 +31,7 @@ export const Canvas = ({
   onBackgroundImageChange,
   zoom, // Added
   backgroundFit, // Added
+  activeTool,
 }: CanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fabricCanvasRef = useRef<FabricCanvas | null>(null);
@@ -38,18 +40,20 @@ export const Canvas = ({
 
   // Helpers
   const makeGradientFill = (obj: IText, layer: TextLayer) => {
-    if (!layer.gradient.enabled) return layer.color;
+    const gradient = (layer as any).gradient;
+    if (!gradient?.enabled) return layer.color;
     try {
-      const w = (obj.width || 200);
-      const h = (obj.height || 60);
-      const type = layer.gradient.type;
+      const w = obj.width || 200;
+      const h = obj.height || 60;
+      const colors = (gradient.colors && gradient.colors.length ? gradient.colors : [layer.color, layer.color]) as string[];
+      const type = gradient.type || "linear";
       if (type === "radial") {
         return new Gradient({
           type: "radial",
           coords: { x1: w / 2, y1: h / 2, r1: 0, x2: w / 2, y2: h / 2, r2: Math.max(w, h) / 2 },
           colorStops: [
-            { offset: 0, color: layer.gradient.colors[0] },
-            { offset: 1, color: layer.gradient.colors[1] || layer.gradient.colors[0] },
+            { offset: 0, color: colors[0] },
+            { offset: 1, color: colors[1] || colors[0] },
           ],
         });
       }
@@ -58,8 +62,8 @@ export const Canvas = ({
         type: "linear",
         coords: { x1: 0, y1: 0, x2: w, y2: 0 },
         colorStops: [
-          { offset: 0, color: layer.gradient.colors[0] },
-          { offset: 1, color: layer.gradient.colors[1] || layer.gradient.colors[0] },
+          { offset: 0, color: colors[0] },
+          { offset: 1, color: colors[1] || colors[0] },
         ],
       });
     } catch {
@@ -76,6 +80,12 @@ export const Canvas = ({
       height: 800,
       backgroundColor: "#1a1a24",
     });
+
+    canvas.preserveObjectStacking = true;
+    try {
+      canvas.freeDrawingBrush.color = '#ffffff';
+      canvas.freeDrawingBrush.width = 2;
+    } catch {}
 
     fabricCanvasRef.current = canvas;
 
@@ -105,12 +115,14 @@ export const Canvas = ({
         // Normalize scaling into fontSize to keep state in sync
         const scaleX = obj.scaleX ?? 1;
         const scaleY = obj.scaleY ?? 1;
-        let newFontSize = obj.fontSize || 0;
+        let newFontSize = obj.fontSize ?? 0;
         if (scaleX !== 1 || scaleY !== 1) {
           const factor = (scaleX + scaleY) / 2; // average to keep proportion for IText
-          newFontSize = Math.max(1, Math.round((obj.fontSize || 0) * factor));
+          newFontSize = Math.max(1, Math.round((obj.fontSize ?? 0) * factor));
           obj.set({ scaleX: 1, scaleY: 1, fontSize: newFontSize });
         }
+        obj.setCoords();
+        canvas.requestRenderAll();
         onUpdateLayer(obj.layerId, {
           x: obj.left || 0,
           y: obj.top || 0,
@@ -198,18 +210,18 @@ export const Canvas = ({
 
       if (!textObj) {
         // Create new text object
-        textObj = new IText(layer.text, {
-          left: layer.x,
-          top: layer.y,
-          fontSize: layer.fontSize,
-          fontFamily: layer.fontFamily,
-          fontWeight: layer.fontWeight,
-          fill: layer.color, // temporary, will set gradient below if enabled
-          opacity: layer.opacity,
-          angle: layer.rotation,
-          textAlign: layer.textAlign,
-          charSpacing: layer.letterSpacing * 10,
-          lineHeight: layer.lineHeight,
+        textObj = new IText(layer.text ?? "", {
+          left: layer.x ?? 0,
+          top: layer.y ?? 0,
+          fontSize: layer.fontSize ?? 16,
+          fontFamily: layer.fontFamily ?? "Inter",
+          fontWeight: layer.fontWeight ?? "normal",
+          fill: layer.color ?? "#ffffff", // temporary, will set gradient below if enabled
+          opacity: layer.opacity ?? 1,
+          angle: layer.rotation ?? 0,
+          textAlign: (layer.textAlign as any) ?? "left",
+          charSpacing: Math.round(((layer.letterSpacing ?? 0) as number) * 10),
+          lineHeight: layer.lineHeight ?? 1.2,
         }) as ExtendedIText;
 
         textObj.layerId = layer.id;
@@ -219,17 +231,17 @@ export const Canvas = ({
 
       // Update existing text object or newly created one
       textObj.set({
-        text: layer.text,
-        left: layer.x,
-        top: layer.y,
-        fontSize: layer.fontSize,
-        fontFamily: layer.fontFamily,
-        fontWeight: layer.fontWeight,
-        opacity: layer.opacity,
-        angle: layer.rotation,
-        textAlign: layer.textAlign,
-        charSpacing: layer.letterSpacing * 10,
-        lineHeight: layer.lineHeight,
+        text: layer.text ?? "",
+        left: layer.x ?? 0,
+        top: layer.y ?? 0,
+        fontSize: layer.fontSize ?? textObj.fontSize ?? 16,
+        fontFamily: layer.fontFamily ?? (textObj.fontFamily as string) ?? "Inter",
+        fontWeight: layer.fontWeight ?? (textObj.fontWeight as string) ?? "normal",
+        opacity: layer.opacity ?? 1,
+        angle: layer.rotation ?? 0,
+        textAlign: (layer.textAlign as any) ?? "left",
+        charSpacing: Math.round(((layer.letterSpacing ?? 0) as number) * 10),
+        lineHeight: layer.lineHeight ?? 1.2,
       });
 
       // Update dynamic props that need object context
