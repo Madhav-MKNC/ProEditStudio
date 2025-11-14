@@ -112,15 +112,6 @@ export const Canvas = ({
     canvas.on("object:modified", (e) => {
       const obj = e.target as ExtendedIText;
       if (obj && obj.layerId) {
-        // Normalize scaling into fontSize to keep state in sync
-        const scaleX = obj.scaleX ?? 1;
-        const scaleY = obj.scaleY ?? 1;
-        let newFontSize = obj.fontSize ?? 0;
-        if (scaleX !== 1 || scaleY !== 1) {
-          const factor = (scaleX + scaleY) / 2; // average to keep proportion for IText
-          newFontSize = Math.max(1, Math.round((obj.fontSize ?? 0) * factor));
-          obj.set({ scaleX: 1, scaleY: 1, fontSize: newFontSize });
-        }
         obj.setCoords();
         canvas.requestRenderAll();
         onUpdateLayer(obj.layerId, {
@@ -128,7 +119,9 @@ export const Canvas = ({
           y: obj.top || 0,
           rotation: obj.angle || 0,
           text: obj.text || "",
-          fontSize: newFontSize || undefined,
+          fontSize: obj.fontSize || undefined, // Keep original fontSize
+          scaleX: obj.scaleX, // Update scaleX
+          scaleY: obj.scaleY, // Update scaleY
         });
       }
     });
@@ -222,6 +215,8 @@ export const Canvas = ({
           textAlign: (layer.textAlign as any) ?? "left",
           charSpacing: Math.round(((layer.letterSpacing ?? 0) as number) * 10),
           lineHeight: layer.lineHeight ?? 1.2,
+          scaleX: layer.scaleX ?? 1, // Initialize with scaleX from layer
+          scaleY: layer.scaleY ?? 1, // Initialize with scaleY from layer
         }) as ExtendedIText;
 
         textObj.layerId = layer.id;
@@ -242,6 +237,8 @@ export const Canvas = ({
         textAlign: (layer.textAlign as any) ?? "left",
         charSpacing: Math.round(((layer.letterSpacing ?? 0) as number) * 10),
         lineHeight: layer.lineHeight ?? 1.2,
+        scaleX: layer.scaleX ?? 1, // Update scaleX from layer
+        scaleY: layer.scaleY ?? 1, // Update scaleY from layer
       });
 
       // Update dynamic props that need object context
@@ -255,6 +252,21 @@ export const Canvas = ({
       textObj.lockMovementX = !!layer.locked;
       textObj.lockMovementY = !!layer.locked;
       textObj.hasControls = !(layer.locked ?? false);
+      // Removed lockUniScaling, as it's deprecated in Fabric.js v4+
+
+      // Explicitly set control visibility for individual scaling
+      textObj.setControlsVisibility({
+        mt: !layer.locked, // middle top
+        mb: !layer.locked, // middle bottom
+        ml: !layer.locked, // middle left
+        mr: !layer.locked, // middle right
+        tl: !layer.locked, // top left
+        tr: !layer.locked, // top right
+        bl: !layer.locked, // bottom left
+        br: !layer.locked, // bottom right
+        mtr: !layer.locked, // middle top rotation
+      });
+
 
       (textObj as any).globalCompositeOperation = layer.blendMode || "source-over";
 

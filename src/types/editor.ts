@@ -16,6 +16,8 @@ export interface TextLayer {
   locked?: boolean;
   hidden?: boolean;
   blendMode?: GlobalCompositeOperation;
+  scaleX?: number; // Added for horizontal scaling
+  scaleY?: number; // Added for vertical scaling
   shadow: {
     enabled: boolean;
     color: string;
@@ -55,6 +57,8 @@ export const createDefaultLayer = (id: string): TextLayer => ({
   locked: false,
   hidden: false,
   blendMode: "source-over",
+  scaleX: 1, // Default scale
+  scaleY: 1, // Default scale
   shadow: {
     enabled: false,
     color: "#000000",
