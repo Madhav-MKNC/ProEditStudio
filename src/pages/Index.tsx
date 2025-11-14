@@ -20,24 +20,20 @@ const Index = () => {
   const selectedLayer = layers.find(layer => layer.id === selectedLayerId) || null;
 
   const updateLayer = (id: string, updates: Partial<TextLayer>) => {
-    const newLayers = layers.map(layer =>
+    setLayers((prev) => prev.map((layer) =>
       layer.id === id ? { ...layer, ...updates } : layer
-    );
-    setLayers(newLayers);
+    ));
   };
-
   const addLayer = (layer: TextLayer) => {
-    setLayers([...layers, layer]);
+    setLayers((prev) => [...prev, layer]);
     setSelectedLayerId(layer.id);
   };
-
   const deleteLayer = (id: string) => {
-    setLayers(layers.filter(layer => layer.id !== id));
+    setLayers((prev) => prev.filter((layer) => layer.id !== id));
     if (selectedLayerId === id) {
       setSelectedLayerId(null);
     }
   };
-
   const duplicateLayer = (id: string) => {
     const layer = layers.find(l => l.id === id);
     if (layer) {
@@ -52,21 +48,14 @@ const Index = () => {
   };
 
   const toggleLock = (id: string) => {
-    const layer = layers.find(l => l.id === id);
-    if (!layer) return;
-    updateLayer(id, { locked: !layer.locked });
+    setLayers((prev) => prev.map((l) => l.id === id ? { ...l, locked: !l.locked } : l));
   };
-
   const toggleHide = (id: string) => {
-    const layer = layers.find(l => l.id === id);
-    if (!layer) return;
-    updateLayer(id, { hidden: !layer.hidden });
+    setLayers((prev) => prev.map((l) => l.id === id ? { ...l, hidden: !l.hidden } : l));
   };
-
   const renameLayer = (id: string, name: string) => {
-    updateLayer(id, { name });
+    setLayers((prev) => prev.map((l) => l.id === id ? { ...l, name } : l));
   };
-
   const handleNewProject = () => {
     setLayers([]);
     setSelectedLayerId(null);
