@@ -303,6 +303,54 @@ export const Canvas = ({
     canvas.renderAll();
   }, [zoom]);
 
+  // Tool modes: draw and hand (pan)
+  useEffect(() => {
+    const canvas = fabricCanvasRef.current;
+    if (!canvas) return;
+
+    canvas.isDrawingMode = activeTool === 'draw';
+    canvas.selection = activeTool !== 'hand' && activeTool !== 'draw';
+
+    let isPanning = false;
+    let lastX = 0;
+    let lastY = 0;
+
+    const onMouseDown = (opt: any) => {
+      if (activeTool !== 'hand') return;
+      isPanning = true;
+      const e = opt.e as MouseEvent;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      canvas.setCursor('grabbing');
+    };
+
+    const onMouseMove = (opt: any) => {
+      if (!isPanning || activeTool !== 'hand') return;
+      const e = opt.e as MouseEvent;
+      const vpt = canvas.viewportTransform || [1, 0, 0, 1, 0, 0];
+      vpt[4] += e.clientX - lastX;
+      vpt[5] += e.clientY - lastY;
+      canvas.setViewportTransform(vpt as any);
+      lastX = e.clientX;
+      lastY = e.clientY;
+    };
+
+    const onMouseUp = () => {
+      if (!isPanning) return;
+      isPanning = false;
+      canvas.setCursor('default');
+    };
+
+    canvas.on('mouse:down', onMouseDown);
+    canvas.on('mouse:move', onMouseMove);
+    canvas.on('mouse:up', onMouseUp);
+
+    return () => {
+      canvas.off('mouse:down', onMouseDown);
+      canvas.off('mouse:move', onMouseMove);
+      canvas.off('mouse:up', onMouseUp);
+    };
+  }, [activeTool]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
