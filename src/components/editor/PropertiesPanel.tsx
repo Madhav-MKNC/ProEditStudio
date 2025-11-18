@@ -1,4 +1,4 @@
-import { TextLayer } from "@/types/editor";
+import { Layer, TextLayer } from "@/types/editor";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
@@ -10,8 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Type, Palette, Sparkles, Layers3 } from "lucide-react";
 
 interface PropertiesPanelProps {
-  selectedLayer: TextLayer | null;
-  onUpdateLayer: (id: string, updates: Partial<TextLayer>) => void;
+  selectedLayer: any;
+  onUpdateLayer: (id: string, updates: any) => void;
 }
 
 // --- IMPORTANT: DEFINE YOUR AVAILABLE FONTS HERE ---

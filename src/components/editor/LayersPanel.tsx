@@ -1,13 +1,13 @@
 import { useState } from "react";
-import { TextLayer } from "@/types/editor";
+import { Layer } from "@/types/editor";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Input } from "@/components/ui/input"; // Assuming you have an Input component
+import { Input } from "@/components/ui/input";
 import { Trash2, Copy, Type, Eye, EyeOff, Lock, Unlock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LayersPanelProps {
-  layers: TextLayer[];
+  layers: Layer[];
   selectedLayerId: string | null;
   onSelectLayer: (id: string) => void;
   onDeleteLayer: (id: string) => void;

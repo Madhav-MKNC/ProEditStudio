@@ -1,30 +1,32 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Canvas } from "@/components/editor/Canvas";
 import { Toolbar } from "@/components/editor/Toolbar";
 import { PropertiesPanel } from "@/components/editor/PropertiesPanel";
 import { LayersPanel } from "@/components/editor/LayersPanel";
 import { Header } from "@/components/editor/Header";
 import { ZoomControls } from "@/components/editor/ZoomControls";
-import { TextLayer } from "@/types/editor";
+import { Layer } from "@/types/editor";
 import { useHistory } from "@/hooks/useHistory";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 
 const Index = () => {
-  const { state: layers, set: setLayers, undo, redo, canUndo, canRedo } = useHistory<TextLayer[]>([]);
+  const { state: layers, set: setLayers, undo, redo, canUndo, canRedo } = useHistory<Layer[]>([]);
   const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null);
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
   const [activeTool, setActiveTool] = useState('select');
   const [backgroundFit, setBackgroundFit] = useState<'contain' | 'cover' | 'stretch'>('contain');
+  const [drawingColor, setDrawingColor] = useState('#ffffff');
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   const selectedLayer = layers.find(layer => layer.id === selectedLayerId) || null;
 
-  const updateLayer = (id: string, updates: Partial<TextLayer>) => {
-    setLayers((prev) => prev.map((layer) =>
+  const updateLayer = (id: string, updates: any) => {
+    setLayers((prev: any) => prev.map((layer: any) =>
       layer.id === id ? { ...layer, ...updates } : layer
     ));
   };
-  const addLayer = (layer: TextLayer) => {
+  const addLayer = (layer: Layer) => {
     setLayers((prev) => [...prev, layer]);
     setSelectedLayerId(layer.id);
   };
@@ -63,11 +65,15 @@ const Index = () => {
     setBackgroundFit('contain');
   };
 
-  const handleOpenProject = (project: { layers: TextLayer[]; backgroundImage: string | null; backgroundFit?: 'contain' | 'cover' | 'stretch' }) => {
+  const handleOpenProject = (project: any) => {
     setLayers(project.layers || []);
     setSelectedLayerId(null);
     setBackgroundImage(project.backgroundImage || null);
     setBackgroundFit(project.backgroundFit || 'contain');
+  };
+
+  const handleImageUpload = () => {
+    imageInputRef.current?.click();
   };
 
   const handleZoomIn = () => setZoom(Math.min(zoom + 0.1, 3));
@@ -90,9 +96,10 @@ const Index = () => {
 
       <div className="flex-1 flex overflow-hidden relative">
         <Toolbar
-          onAddText={addLayer}
+          onAddLayer={addLayer}
           activeTool={activeTool}
           onToolChange={setActiveTool}
+          onImageUpload={handleImageUpload}
         />
 
         <ResizablePanelGroup direction="horizontal" className="flex-1">
@@ -105,10 +112,13 @@ const Index = () => {
                   backgroundImage={backgroundImage}
                   onSelectLayer={setSelectedLayerId}
                   onUpdateLayer={updateLayer}
+                  onAddLayer={addLayer}
                   onBackgroundImageChange={setBackgroundImage}
                   zoom={zoom}
                   backgroundFit={backgroundFit}
                   activeTool={activeTool}
+                  drawingColor={drawingColor}
+                  imageInputRef={imageInputRef}
                 />
               </div>
 
