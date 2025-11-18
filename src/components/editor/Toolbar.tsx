@@ -1,19 +1,26 @@
 import { Button } from "@/components/ui/button";
-import { Type, Square, Circle, Image, MousePointer2, Hand, Pencil, Eraser, Pipette, Sparkles, Wand2 } from "lucide-react";
-import { TextLayer, createDefaultLayer } from "@/types/editor";
+import { Type, Square, Circle, Image as ImageIcon, MousePointer2, Hand, Pencil, Eraser, Pipette, Sparkles, Wand2 } from "lucide-react";
+import { Layer, createDefaultLayer, createDefaultShape } from "@/types/editor";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 interface ToolbarProps {
-  onAddText: (layer: TextLayer) => void;
+  onAddLayer: (layer: Layer) => void;
   activeTool: string;
   onToolChange: (tool: string) => void;
+  onImageUpload: () => void;
 }
 
-export const Toolbar = ({ onAddText, activeTool, onToolChange }: ToolbarProps) => {
+export const Toolbar = ({ onAddLayer, activeTool, onToolChange, onImageUpload }: ToolbarProps) => {
   const handleAddText = () => {
     const layer = createDefaultLayer(`layer-${Date.now()}`);
-    onAddText(layer);
+    onAddLayer(layer);
+    onToolChange('select');
+  };
+
+  const handleAddShape = (shapeType: 'rectangle' | 'circle') => {
+    const layer = createDefaultShape(`layer-${Date.now()}`, shapeType);
+    onAddLayer(layer);
     onToolChange('select');
   };
 
@@ -21,13 +28,11 @@ export const Toolbar = ({ onAddText, activeTool, onToolChange }: ToolbarProps) =
     { id: 'select', icon: MousePointer2, label: 'Select' },
     { id: 'hand', icon: Hand, label: 'Hand Tool' },
     { id: 'text', icon: Type, label: 'Text', action: handleAddText },
-    { id: 'shape', icon: Square, label: 'Rectangle' },
-    { id: 'circle', icon: Circle, label: 'Circle' },
+    { id: 'shape', icon: Square, label: 'Rectangle', action: () => handleAddShape('rectangle') },
+    { id: 'circle', icon: Circle, label: 'Circle', action: () => handleAddShape('circle') },
+    { id: 'image', icon: ImageIcon, label: 'Image', action: onImageUpload },
     { id: 'draw', icon: Pencil, label: 'Draw' },
     { id: 'eraser', icon: Eraser, label: 'Eraser' },
-    { id: 'eyedropper', icon: Pipette, label: 'Eyedropper' },
-    { id: 'magic', icon: Sparkles, label: 'Magic Select' },
-    { id: 'effects', icon: Wand2, label: 'Effects' },
   ];
 
   return (
@@ -46,7 +51,7 @@ export const Toolbar = ({ onAddText, activeTool, onToolChange }: ToolbarProps) =
           >
             <tool.icon className="w-5 h-5" />
           </Button>
-          {[2, 7].includes(index) && <Separator className="my-2" />}
+          {[2, 5].includes(index) && <Separator className="my-2" />}
         </div>
       ))}
     </div>

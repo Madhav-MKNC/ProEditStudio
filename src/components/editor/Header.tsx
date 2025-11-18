@@ -1,16 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { Download, Save, FolderOpen, Settings, FileImage, FileType, Palette } from "lucide-react";
-import { TextLayer } from "@/types/editor";
+import { Layer } from "@/types/editor";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { HistoryControls } from "./HistoryControls";
 import { useRef } from "react";
 
 interface HeaderProps {
-  layers: TextLayer[];
+  layers: Layer[];
   backgroundImage: string | null;
   backgroundFit?: 'contain' | 'cover' | 'stretch';
   onNewProject?: () => void;
-  onOpenProject?: (project: { layers: TextLayer[]; backgroundImage: string | null; backgroundFit?: 'contain' | 'cover' | 'stretch' }) => void;
+  onOpenProject?: (project: any) => void;
   onUndo: () => void;
   onRedo: () => void;
   canUndo: boolean;
