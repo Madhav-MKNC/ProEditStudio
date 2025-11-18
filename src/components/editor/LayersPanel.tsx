@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Layer } from "@/types/editor";
+import { Layer, TextLayer } from "@/types/editor";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
@@ -30,9 +30,10 @@ export const LayersPanel = ({
   const [editingLayerId, setEditingLayerId] = useState<string | null>(null);
   const [editingLayerName, setEditingLayerName] = useState<string>('');
 
-  const handleStartRename = (layer: TextLayer) => {
+  const handleStartRename = (layer: Layer) => {
+    if (layer.type !== 'text') return;
     setEditingLayerId(layer.id);
-    setEditingLayerName(layer.name || layer.text);
+    setEditingLayerName(layer.name || (layer as TextLayer).text);
   };
 
   const handleRenameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -102,8 +103,8 @@ export const LayersPanel = ({
                   ) : (
                     <div className="flex items-center gap-2 flex-1 min-w-0 pr-2">
                       <Type className="w-3 h-3 text-primary flex-shrink-0" />
-                      <span className="text-xs truncate" title={layer.name || layer.text}>
-                        {layer.name || layer.text}
+                      <span className="text-xs truncate" title={layer.name || (layer.type === 'text' ? (layer as TextLayer).text : '')}>
+                        {layer.name || (layer.type === 'text' ? (layer as TextLayer).text : '')}
                       </span>
                     </div>
                   )}

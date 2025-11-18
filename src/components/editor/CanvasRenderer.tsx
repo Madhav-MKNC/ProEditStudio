@@ -83,11 +83,10 @@ export const useCanvasRenderer = ({
           scaleY: obj.scaleY,
         };
 
-      if (obj instanceof IText) {
-        const textLayer = layer as TextLayer;
-        updates.text = obj.text || "";
-        updates.fontSize = obj.fontSize;
-      }
+        if (obj instanceof IText) {
+          (updates as any).text = obj.text || "";
+          (updates as any).fontSize = obj.fontSize;
+        }
 
         onUpdateLayer(obj.layerId, updates);
       }
